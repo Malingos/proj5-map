@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Map</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <table hidden id="location_table">
+        {% for entry in g.twoDArray %}
+          <tr>
+            <td>{{entry[0]}}</td>
+            <td>{{entry[1]}}</td>
+            <td>{{entry[2]}}</td>
+          </tr>
+        {% endfor %}
+    </table>
+    <div id="map"></div>
+    <script>
+      // Note: This example requires that you consent to location sharing when
+      // prompted by your browser. If you see the error "The Geolocation service
+      // failed.", it means you probably did not give permission for the browser to
+      // locate you.
+      //first, build three arrays with location names, latitudes, and longitudes
+      var myTable = document.getElementById("location_table");
+      console.log("Starting script");
+      var names = [];
+      var lats = [];
+      var lons = [];
+      var mapReady = false;
+      console.log("Getting info from table.");
+      for(var i = 0, row; row = myTable.rows[i]; i++) {//1
+          for(var j = 0, col; col = row.cells[j]; j++) {//2
+              //j will be 0, 1, or 2
+              switch (j){//3
+                  case 0:
+                      names.push(col.innerText);
+                      break;
+                  case 1:
+                      lats.push(col.innerText);
+                      break;
+                  case 2:
+                      lons.push(col.innerText);
+                      break;
+                  default:
+                      throw("Too many columns in table");
+                      break;
+              }//close3
+          }//close2
+      }//this code from stackoverflow, close1
+      console.log("Set arrays");
+      var map, infoWindow, pos;
+      console.log("Starting initmap");
+      function initMap() {//4
+        map = new google.maps.Map(document.getElementById('map'), {//5
+          center: {lat: -34.397, lng: 150.644},
+          zoom: 15
+        });//close 5
+        infoWindow = new google.maps.InfoWindow;
+        //var geocoder = new google.maps.GeoCoder();
+        // Try HTML5 geolocation.
+        if (navigator.geolocation) {//6
+          navigator.geolocation.getCurrentPosition(function(position) {//7
+            pos = {//8
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };//close 8
+            console.log("Setting position");
+            infoWindow.setPosition(pos);
+            infoWindow.setContent('You are here.');
+            infoWindow.open(map);
+            map.setCenter(pos);
+            console.log("Position set.");
+            var marker, i;
+            marker = new google.maps.Marker({
+                position: pos, map: map
+            });
+            google.maps.event.addListener(marker, 'click', (function(marker){
+                return function(){
+                    (new google.maps.Geocoder).geocode({'location': pos}, function(results, status){
+                      if (status === 'OK'){
+                        if(results[0]){
+                          infoWindow.setContent(results[0].formatted_address);
+                          infoWindow.open(map, marker);
+                        }
+                      }
+                    }
+                  );
+                }
+                //latLng = event.latLng;
+                /*geocoder.geocode({
+                    'latLng': pos
+                }, function(results, status){
+                    console.log("Geocoding");
+                    if(status == google.maps.geoCoderStatus.OK){
+                        if(results[0]){
+                            infoWindow.setContent(results[0].formatted_address);
+                            infoWindow.open(map, marker);
+                        }
+                    }
+                });*/
+            })(marker));
+            console.log("Created first marker listener");
+            /*google.maps.event.addListener(marker, 'click', (function(marker){
+                return function(){
+                    infoWindow.setContent("This is your current location");
+                    infoWindow.open(map, marker);
+                }
+            })(marker));*/
+            for(i = 0; i < lons.length; i++){
+                marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(lats[i], lons[i]), map: map
+                });
+                google.maps.event.addListener(marker, 'click', (function(marker, i){
+                    return function(){
+                      infoWindow.setContent(names[i]);
+                      infoWindow.open(map, marker);
+                    }
+                    /*var latlng = new google.maps.LatLng(lats[i], lons[i])
+                    geocodeLatLng(geocoder, map, infoWindow, latlng);*/
+                })(marker, i));
+            }
+            console.log("Created and centered map");
+            mapReady = true;
+          }/* close 7 */, function() {//9
+            handleLocationError(true, infoWindow, map.getCenter());
+          });//close 9
+
+        }/*close 6 */ else {//10
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+        }//close 10
+      }//close 4
+      function handleLocationError(browserHasGeolocation, infoWindow, pos) {//11
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+                              'Error: The Geolocation service failed.' :
+                              'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+      }//close 11
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCD0Z0IHpls-I2hc0a9uBV-iSaQUlZKaxI&callback=initMap">
+    </script>
+    </body>
+</html>

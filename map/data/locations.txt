@@ -1,0 +1,10 @@
+#Places: Burgers
+#Place
+#Latitude
+#Longitude
+Wild Duck Cafe:44.044331,-123.064544
+Little Big Burger:44.044320,-123.063269
+Joes Burgers:44.044479,-123.073997
+Cornucopia Bar and Burgers:44.054606,-123.089350
+Five Guys:44.052486,-123.099947
+Wild Duck Cafe:44.044228,-123.064506
